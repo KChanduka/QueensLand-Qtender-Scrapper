@@ -27,7 +27,7 @@ async function run(){
 
     }))
 
-    //links in page 1
+    //no.of links in page 1
     const pageOne = links.length;
     
 
@@ -36,14 +36,11 @@ async function run(){
         const pageLinks = Array.from(document.querySelectorAll('.paging > tbody > tr > td > a'),(e)=>e);
         return pageLinks.length;
     });
-    // let count = 0;
-    // for(each of numOfPages){
-    //     count++;
-    // }
+
 
     // if(numOfPages == 0){
-    //     // console.log('page 1',links);
-    //     // console.log('only the first page no more to scarpe');
+    //     console.log('page 1',links);
+    //     console.log('only the first page no more to scarpe');
     // }else{
         
     //     //scraping the other pages
@@ -75,51 +72,88 @@ async function run(){
     // }
 
 
+    // intializing an array to include scrape data
+    let scrapedData = [];
+
     // scraping inside each link in links
-    // let titles = [];
-    // for(const each of links){
-
-    //     const newPage = await browser.newPage();
-    //     await newPage.goto(each.link);
-    //     await page.waitForSelector('[summary]');
-
-    //     // const details = await page.evaluate(()=>document.querySelector('[summary]'));
-    //     const details = await page.$('[summary]');
-    //         console.log('element with atrribute summary found');
-    //     if(details){
-
-    //     }else{
-    //         console.log('attribute with summary not found');
-    //     }
-
-        
-
-        
-
-    //     // await page.waitForTimeout(5000);
-    //     // await page.screenshot({path:'1st tender.png', fullPage:true});
-    //     // titles.push(title);
-    //     newPage.close();
-    // }
-   
-    const newPage = await browser.newPage();
-    await newPage.goto(links[0].link);
-    await page.waitForSelector('[summary]');
-
-    const summary = await page.$('[summary]');
-    console.log(summary);
-
     
-    // console.log(links);
-    console.log('num of links in page 1 :', pageOne);
-    console.log('number of pages except page1 :',numOfPages);
-    console.log('total num of links at the end : ',links.length);
+    for(const each of links){
 
-    // console.log(titles);
+        const newpage = await browser.newPage();
+        await newpage.goto(each.link);
+        await newpage.waitForSelector('[summary = "help page"]');
+
+        // const details = await page.evaluate(()=>document.querySelector('[summary]'));
+
+        //Extract the title
+        const title = await newpage.evaluate(()=>{
+            const titleELenment = document.querySelector('[summary = "help page"] > tbody > tr > td:nth-child(2)').querySelector('.TITLE').innerText.replace(/\n+/g,"");
+            return titleELenment ? titleELenment : "";
+        });
+
+        //Extracting  agency
+        const agency = "";
+        //Extracting  atmID
+        const atmId = "";
+        
+        //Extracting  category
+        await newpage.waitForSelector('[summary = "show tender details"] > tbody')
+
+        const category = await newpage.evaluate(()=>{
+            const categoryElement = document.querySelector('[summary = "show tender details"] > tbody > tr:nth-child(2) > td:nth-child(2)').innerText.replace(/\n+/g,"");
+            return categoryElement ? categoryElement : "";
+        });
+
+
+        //Extracting location
+        const location = ["QLD"];
+
+        //Extracting region
+        const region = await newpage.evaluate(()=>{
+            const regionElement = document.querySelector('[summary = "show tender details"] > tbody > tr:nth-child(7) > td:nth-child(2)').innerText.split('\n');
+    
+            //removing the last empty string
+            if(regionElement[regionElement.length - 1] === ''){
+                regionElement.pop();
+            }
+            return regionElement.length > 0 ? regionElement:["not specified"];
+        });
+
+
+        //Extracting idNumber
+        const idNumber = await newpage.evaluate(()=>{
+            const idNumberElement = document.querySelector('[summary = "show tender details"] > tbody > tr:nth-child(3) > td:nth-child(2)').innerText;
+            return idNumberElement ? idNumberElement: "";
+        });
+
+        //Extracting pulishedDate
+      
+
+        if(title){
+            
+            titles.push({title: title});
+            
+        }else{
+            console.log('attribute not found');
+        }
+
+        newpage.close();
+
+        
+    }
+        
+
+    // console.log(links);
+    // console.log('num of links in page 1 :', pageOne);
+    // console.log('number of pages except page1 :',numOfPages);
+    // console.log('total num of links at the end : ',links.length);
+
+  
     browser.close();
 
 
 
 }
+
 
 run();
